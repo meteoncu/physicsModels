@@ -4,7 +4,7 @@
 <script language="javascript" src="jquery.js"></script>
 <style>
 body{margin:0;padding:0;overflow:hidden;}
-.top{position:absolute;background-color:#000;border-radius:50px;opacity:0.5;}
+.ball{position:absolute;background-color:#000;border-radius:50px;opacity:0.5;}
 </style>
 <script>
 var windowHeight, windowWidth;
@@ -23,7 +23,7 @@ $(document).ready(function(){
 	createGraphics();
 	physics();
 	
-	$(".top").mousedown(function(event){
+	$(".ball").mousedown(function(event){
 		startx = event.pageX;
 		starty = event.pageY;
 		heldBallId = $(this).attr("id");
@@ -36,7 +36,7 @@ $(document).ready(function(){
 		ylength = endy-starty;
 		if(heldBallId != ""){
 			var length = Math.sqrt( xlength*xlength + ylength*ylength );
-			accelerateBall((ylength/length), (xlength/length), heldBallId);
+			accelerateBall(heldBallId, (ylength/length), (xlength/length));
 			heldBallId = "";
 		}
 	});
@@ -45,27 +45,10 @@ $(document).ready(function(){
 
 function physics(){
 	var i = 0;
-	var kacinci = 0;
-	while(kacinci < numberOfBalls){
+	var ballNumber = 0;
+	while(ballNumber < numberOfBalls){
 		if(balls[i] != undefined){
 			balls[i]["verticalSpeed"] -= gravity * delay / 1000;
-			var c = 0;
-			var kacinci2 = 0;
-			while(kacinci2 < numberOfBalls){
-				if(balls[c] != undefined){
-					if(i != c){
-						var xdistance = balls[c]["x"]-balls[i]["x"];
-						var ydistance = balls[c]["y"]-balls[i]["y"];
-						var distance = Math.sqrt(xdistance*xdistance+ydistance*ydistance);
-						if(distance > 1){
-							balls[i]["verticalSpeed"] += balls[c]["mass"] * universalConstant * delay / 1000 * (ydistance/distance)/distance/distance;
-							balls[i]["horizontalSpeed"] += balls[c]["mass"] * universalConstant * delay / 1000 * (xdistance/distance)/distance/distance;
-						}
-					}
-					kacinci2++;
-				}
-				c++;
-			}
 			
 			balls[i]["x"] += balls[i]["horizontalSpeed"] * delay / 1000;
 			balls[i]["y"] += balls[i]["verticalSpeed"] * delay / 1000;
@@ -77,22 +60,22 @@ function physics(){
 			
 			updatePositions(i,balls[i]["x"], balls[i]["y"]);
 			
-			kacinci++;
+			ballNumber++;
 		}
 		i++;
 	}
-	setTimeout("physics();", delay);
+	setTimeout(function(){physics();}, delay);
 }
 
-function accelerateBall(cos, sin, id){
+function accelerateBall(ballId, cos, sin){
 	if(cos >= -1 && cos <= 1 && sin >= -1 && sin <= 1){
-		balls[id.replace(/\D/g,'')]["verticalSpeed"] += clickAcceleration * delay / 1000 * cos;
-		balls[id.replace(/\D/g,'')]["horizontalSpeed"] += clickAcceleration * delay / 1000 * sin;
+		balls[ballId.replace(/\D/g,'')]["verticalSpeed"] += clickAcceleration * delay / 1000 * cos;
+		balls[ballId.replace(/\D/g,'')]["horizontalSpeed"] += clickAcceleration * delay / 1000 * sin;
 	}
 }
 
 function updatePositions(no, x, y){
-	$("#top"+no).css({"left": x, "top": y});
+	$("#ball"+no).css({"left": x, "top": y});
 }
 
 function createGraphics(){
@@ -100,7 +83,7 @@ function createGraphics(){
 	var i = 0;
 	while(i < numberOfBalls){
 		if(balls[c] != undefined){
-			$("body").prepend("<div id='top"+c+"' style='width:"+(balls[c]["r"]*2)+"px;height:"+(balls[c]["r"]*2)+"px;left:"+balls[c]["x"]+"px;top:"+balls[c]["y"]+"px;' class='top'></div>");
+			$("body").prepend("<div id='ball"+c+"' style='width:"+(balls[c]["r"]*2)+"px;height:"+(balls[c]["r"]*2)+"px;left:"+balls[c]["x"]+"px;top:"+balls[c]["y"]+"px;' class='ball'></div>");
 			i++;
 		}
 		c++;
