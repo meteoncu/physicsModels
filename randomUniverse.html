@@ -1,0 +1,77 @@
+<html>
+<head>
+<script language="javascript" type="text/javascript" src="jquery.js"></script>
+<style>
+body{margin:0;padding:0;}
+</style>
+<script>
+function getRndInteger(min, max) {
+    return Math.floor(Math.random() * (max - min + 1) ) + min;
+}
+
+minMass = 1;
+minX = 0;		maxX = 1000;
+minY = 0;		maxY = 600;
+minVx = 0;		maxVx = 50;
+minVy = 0;		maxVy = 50;
+
+gravity = 2000;
+collisionDistance = 5;
+particleNumber = 50;
+loopWaiting = 20;
+particles = new Array();
+
+$(document).ready(function(){
+	for(var i = 0; i < particleNumber; i++){
+		if( getRndInteger(1,100)<8 ){maxMass = 50;} else { maxMass = 10; }
+		mass = getRndInteger(minMass, maxMass);
+		x = getRndInteger(minX, maxX);
+		y = getRndInteger(minY, maxY);
+		vx = getRndInteger(minVx, maxVx)-maxVx/2;
+		vy = getRndInteger(minVy, maxVy)-maxVy/2;
+		
+		particles[i] = {"x": x, "y": y, "mass": mass, "vx": vx, "vy": vy};
+		$("body").append("<div style='width:"+(mass)+"px;height:"+(mass)+"px;position:absolute;left:"+x+"px;top:"+y+"px;border-radius:100px;background-color:black;opacity:0.7;' id='p"+i+"'></div>");
+	}
+
+	setInterval(function(){
+		for(var i = 0; i < particleNumber; i++){
+			if(particles[i] != undefined){
+				x1 = particles[i]["x"];	y1 = particles[i]["y"];
+				for(var ii = 0; ii < particleNumber; ii++){
+					if(i!=ii && particles[ii] != undefined){
+						x2 = particles[ii]["x"];	y2 = particles[ii]["y"];
+						var distance = Math.sqrt( (y2-y1)*(y2-y1) + (x2-x1)*(x2-x1) );
+						if(distance<collisionDistance){
+							//inelastic collision
+							totalMass = particles[i]["mass"] + particles[ii]["mass"];
+							particles[i]["vx"] = (particles[i]["vx"]*particles[i]["mass"] + particles[ii]["vx"]*particles[ii]["mass"]) / totalMass;
+							particles[i]["vy"] = (particles[i]["vy"]*particles[i]["mass"] + particles[ii]["vy"]*particles[ii]["mass"]) / totalMass;
+							particles[i]["mass"] = totalMass;
+							$("#p"+i).css({ "width": (totalMass)+"px", height: (totalMass)+"px" });
+							$("#p"+ii).remove();
+							delete particles[ii];
+						}else{
+							acceleration = particles[ii]["mass"] * gravity / distance / distance * loopWaiting / 1000;
+							particles[i]["vx"] += acceleration * ((x2-x1)/distance);
+							particles[i]["vy"] += acceleration * ((y2-y1)/distance);
+						}
+					}
+				}
+			}
+		}
+		for(var i = 0; i < particleNumber; i++){
+			if(particles[i] != undefined){
+				particles[i]["x"] += particles[i]["vx"] * loopWaiting / 1000;
+				particles[i]["y"] += particles[i]["vy"] * loopWaiting / 1000;
+				$("#p"+i).css({ "left": particles[i]["x"]+"px", "top": particles[i]["y"]+"px" });
+			}
+		}
+	}, loopWaiting);
+});
+</script>
+</head>
+
+<body>
+</body>
+</html>
