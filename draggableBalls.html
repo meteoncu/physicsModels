@@ -1,0 +1,115 @@
+<html>
+<head>
+<title>Draggable Balls</title>
+<script language="javascript" src="jquery.js"></script>
+<style>
+body{margin:0;padding:0;overflow:hidden;}
+.top{position:absolute;background-color:#000;border-radius:50px;opacity:0.5;}
+</style>
+<script>
+var windowHeight, windowWidth;
+var balls = new Array(), numberOfBalls = 0;
+var clickAcceleration = 5000, gravity = -200, universalConstant = 100000, delay = 20;
+var heldBallId = "", startx, starty, endx, endy;
+
+$(document).ready(function(){
+	windowHeight = $(window).height();
+	windowWidth = $(window).width();
+	
+	balls[0] = {"mass": 0, "x": 500, "y": 200, "r": 50, "horizontalSpeed": 0, "verticalSpeed": 0};
+	balls[1] = {"mass": 0, "x": 30, "y": 30, "r": 50, "horizontalSpeed": 0, "verticalSpeed": 0};
+	numberOfBalls = balls.length;
+	
+	createGraphics();
+	physics();
+	
+	$(".top").mousedown(function(event){
+		startx = event.pageX;
+		starty = event.pageY;
+		heldBallId = $(this).attr("id");
+		return false;
+	});
+	$("body").mouseup(function(event){
+		endx = event.pageX;
+		endy = event.pageY;
+		xlength = endx-startx;
+		ylength = endy-starty;
+		if(heldBallId != ""){
+			var length = Math.sqrt( xlength*xlength + ylength*ylength );
+			accelerateBall((ylength/length), (xlength/length), heldBallId);
+			heldBallId = "";
+		}
+	});
+	
+});
+
+function physics(){
+	var i = 0;
+	var kacinci = 0;
+	while(kacinci < numberOfBalls){
+		if(balls[i] != undefined){
+			balls[i]["verticalSpeed"] -= gravity * delay / 1000;
+			var c = 0;
+			var kacinci2 = 0;
+			while(kacinci2 < numberOfBalls){
+				if(balls[c] != undefined){
+					if(i != c){
+						var xdistance = balls[c]["x"]-balls[i]["x"];
+						var ydistance = balls[c]["y"]-balls[i]["y"];
+						var distance = Math.sqrt(xdistance*xdistance+ydistance*ydistance);
+						if(distance > 1){
+							balls[i]["verticalSpeed"] += balls[c]["mass"] * universalConstant * delay / 1000 * (ydistance/distance)/distance/distance;
+							balls[i]["horizontalSpeed"] += balls[c]["mass"] * universalConstant * delay / 1000 * (xdistance/distance)/distance/distance;
+						}
+					}
+					kacinci2++;
+				}
+				c++;
+			}
+			
+			balls[i]["x"] += balls[i]["horizontalSpeed"] * delay / 1000;
+			balls[i]["y"] += balls[i]["verticalSpeed"] * delay / 1000;
+			
+			if(balls[i]["x"] < 0){balls[i]["x"] = 0;balls[i]["horizontalSpeed"] *= -1;}
+			if(balls[i]["x"]+balls[i]["r"]*2 > windowWidth){balls[i]["x"] = windowWidth-balls[i]["r"]*2;balls[i]["horizontalSpeed"] *= -1;}
+			if(balls[i]["y"] < 0){balls[i]["y"] = 0;balls[i]["verticalSpeed"] *= -1;}
+			if(balls[i]["y"]+balls[i]["r"]*2 > windowHeight){balls[i]["y"] = windowHeight-balls[i]["r"]*2;balls[i]["verticalSpeed"] *= -1;}
+			
+			updatePositions(i,balls[i]["x"], balls[i]["y"]);
+			
+			kacinci++;
+		}
+		i++;
+	}
+	setTimeout("physics();", delay);
+}
+
+function accelerateBall(cos, sin, id){
+	if(cos >= -1 && cos <= 1 && sin >= -1 && sin <= 1){
+		balls[id.replace(/\D/g,'')]["verticalSpeed"] += clickAcceleration * delay / 1000 * cos;
+		balls[id.replace(/\D/g,'')]["horizontalSpeed"] += clickAcceleration * delay / 1000 * sin;
+	}
+}
+
+function updatePositions(no, x, y){
+	$("#top"+no).css({"left": x, "top": y});
+}
+
+function createGraphics(){
+	var c = 0;
+	var i = 0;
+	while(i < numberOfBalls){
+		if(balls[c] != undefined){
+			$("body").prepend("<div id='top"+c+"' style='width:"+(balls[c]["r"]*2)+"px;height:"+(balls[c]["r"]*2)+"px;left:"+balls[c]["x"]+"px;top:"+balls[c]["y"]+"px;' class='top'></div>");
+			i++;
+		}
+		c++;
+	}
+}
+
+</script>
+</head>
+
+<body>
+</body>
+</html>
